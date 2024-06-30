@@ -3,6 +3,8 @@ import App from './app';
 import { __ } from '@wordpress/i18n';
 import AiPromotionInfotipWrapper from './components/ai-promotion-infotip-wrapper';
 import { shouldShowPromotionIntroduction } from './utils/promotion-introduction-session-validator';
+import AIExcerpt from './ai-excerpt';
+import { RequestIdsProvider } from './context/requests-ids';
 
 export default class AiBehavior extends Marionette.Behavior {
 	initialize() {
@@ -40,21 +42,32 @@ export default class AiBehavior extends Marionette.Behavior {
 
 		window.elementorAiCurrentContext = this.getOption( 'context' );
 
-		const { unmount } = ReactUtils.render( (
-			<App
-				type={ this.getOption( 'type' ) }
-				controlType={ this.getOption( 'controlType' ) }
-				getControlValue={ this.getOption( 'getControlValue' ) }
-				setControlValue={ this.getOption( 'setControlValue' ) }
-				additionalOptions={ this.getOption( 'additionalOptions' ) }
-				onClose={ () => {
-					unmount();
-					rootElement.remove();
-				} }
-				colorScheme={ colorScheme }
-				isRTL={ isRTL }
-			/>
-		), rootElement );
+		const { unmount } = 'excerpt' === this.getOption( 'type' )
+			? ReactUtils.render( (
+				<RequestIdsProvider>
+					<AIExcerpt onClose={ () => {
+						unmount();
+						rootElement.remove();
+					} }
+						currExcerpt={ this.getOption( 'getControlValue' )() }
+						updateExcerpt={ this.getOption( 'setControlValue' ) }
+						postTextualContent={ 'bla' } />
+				</RequestIdsProvider> ), rootElement )
+			: ReactUtils.render( (
+				<App
+					type={ this.getOption( 'type' ) }
+					controlType={ this.getOption( 'controlType' ) }
+					getControlValue={ this.getOption( 'getControlValue' ) }
+					setControlValue={ this.getOption( 'setControlValue' ) }
+					additionalOptions={ this.getOption( 'additionalOptions' ) }
+					onClose={ () => {
+						unmount();
+						rootElement.remove();
+					} }
+					colorScheme={ colorScheme }
+					isRTL={ isRTL }
+				/>
+			), rootElement );
 	}
 
 	getAiButtonLabel() {
